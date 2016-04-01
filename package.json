@@ -39,6 +39,11 @@
       }
     }
   ],
+  "analytics": [
+    "example",
+    "example2",
+    "ga"
+  ],
   "author": "the prebid.js contributors",
   "license": "Apache-2.0",
   "devDependencies": {

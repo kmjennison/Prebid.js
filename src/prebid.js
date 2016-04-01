@@ -13,7 +13,6 @@ var bidmanager = require('./bidmanager.js');
 var adaptermanager = require('./adaptermanager');
 var bidfactory = require('./bidfactory');
 var adloader = require('./adloader');
-var ga = require('./ga');
 var events = require('./events');
 
 /* private variables */
@@ -557,6 +556,20 @@ pbjs.registerBidAdapter = function (bidderAdaptor, bidderCode) {
   }
 };
 
+/**
+ * Wrapper to register analyticsAdapter externally (adaptermanager.registerAnalyticsAdapter())
+ * @param  {[type]} options [description]
+ */
+pbjs.registerAnalyticsAdapter = function (options) {
+  utils.logInfo('Invoking pbjs.registerAnalyticsAdapter', arguments);
+  try {
+    adaptermanager.registerAnalyticsAdapter(options);
+  }
+  catch (e) {
+    utils.logError('Error registering analytics adapter : ' + e.message);
+  }
+};
+
 pbjs.bidsAvailableForAdapter = function (bidderCode) {
   utils.logInfo('Invoking pbjs.bidsAvailableForAdapter', arguments);
 
@@ -603,25 +616,14 @@ pbjs.loadScript = function (tagSrc, callback, useCache) {
 
 /**
  * Will enable sendinga prebid.js to data provider specified
- * @param  {object} options object {provider : 'string', options : {}}
+ * @param  {object} config object {provider : 'string', options : {}}
  */
-pbjs.enableAnalytics = function (options) {
-  utils.logInfo('Invoking pbjs.enableAnalytics', arguments);
-  if (!options) {
-    utils.logError('pbjs.enableAnalytics should be called with option {}', 'prebid.js');
-    return;
-  }
-
-  if (options.provider === 'ga') {
-    try {
-      ga.enableAnalytics(typeof options.options === 'undefined' ? {} : options.options);
-    }
-    catch (e) {
-      utils.logError('Error calling GA: ', 'prebid.js', e);
-    }
-  } else if (options.provider === 'other_provider') {
-    //todo
-    return null;
+pbjs.enableAnalytics = function (config) {
+  if (config && !utils.isEmpty(config)) {
+    utils.logInfo('Invoking pbjs.enableAnalytics for: ', config);
+    adaptermanager.enableAnalytics(config);
+  } else {
+    utils.logError('pbjs.enableAnalytics should be called with option {}');
   }
 };
 
