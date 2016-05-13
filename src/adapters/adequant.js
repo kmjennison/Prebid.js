@@ -4,7 +4,7 @@ var adloader = require('../adloader.js');
 
 module.exports = function() {
   var req_url_base = 'https://rex.adequant.com/rex/c2s_prebid?';
-  
+
   function _callBids(params) {
     var req_url = [];
     var publisher_id = null;
@@ -12,13 +12,13 @@ module.exports = function() {
     var cats = null;
     var replies = [];
     var placements = {};
-    
+
     var bids = params.bids || [];
     for (var i = 0; i < bids.length; i++) {
       var bid_request = bids[i];
       var br_params = bid_request.params || {};
       placements[bid_request.placementCode] = true;
-      
+
       publisher_id = br_params.publisher_id.toString()    || publisher_id;
       var bidfloor = br_params.bidfloor                   || 0.01;
       cats         = br_params.cats                       || cats;
@@ -35,7 +35,7 @@ module.exports = function() {
     
     adloader.loadScript(req_url_base+req_url.join('&'), function() { process_bids(replies, placements); });
   }
-  
+
   function process_bids(replies, placements) {
     var placement_code, bid, adequant_creatives = window.adequant_creatives;
     if (adequant_creatives && adequant_creatives.seatbid) {

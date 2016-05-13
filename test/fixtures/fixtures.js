@@ -1103,3 +1103,7 @@ export function getAdServerTargeting() {
     }
   };
 }
+
+function getAuction() {
+
+}

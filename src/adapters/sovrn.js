@@ -55,7 +55,6 @@ var SovrnAdapter = function SovrnAdapter() {
         bidfloor: bidFloor
       };
       sovrnImps.push(imp);
-      //bidmanager.pbCallbackMap[imp.id] = bid;
       allPlacementCodes.push(bid.placementCode);
     });
 
@@ -105,7 +104,7 @@ var SovrnAdapter = function SovrnAdapter() {
           var bid = {};
 
           // try to fetch the bid request we sent Sovrn
-          var bidObj = pbjs._bidsRequested.find(bidSet => bidSet.bidderCode === 'sovrn').bids
+          var bidObj = auction.getBidderRequests().find(bidSet => bidSet.bidderCode === 'sovrn').bids
           .find(bid => bid.bidId === id);
 
           if (bidObj) {

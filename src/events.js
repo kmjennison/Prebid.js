@@ -8,9 +8,7 @@ var push = Array.prototype.push;
 
 //define entire events
 //var allEvents = ['bidRequested','bidResponse','bidWon','bidTimeout'];
-var allEvents = utils._map(CONSTANTS.EVENTS, function (v) {
-  return v;
-});
+var allEvents = Object.keys(CONSTANTS.EVENTS).map(eventName => eventName);
 
 var idPaths = CONSTANTS.EVENT_ID_PATHS;
 

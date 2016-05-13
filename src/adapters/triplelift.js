@@ -73,7 +73,7 @@ var TripleLiftAdapter = function TripleLiftAdapter() {
   pbjs.TLCB = function(tlResponseObj) {
     if (tlResponseObj && tlResponseObj.callback_id) {
       //var bidObj = bidmanager.pbCallbackMap[tlResponseObj.callback_id],
-      var bidObj = pbjs._bidsRequested.find(bidSet => bidSet.bidderRequestId === tlResponseObj.callback_id).bids.reduce((a, b) => b);
+      var bidObj = auction.getBidderRequests().find(bidSet => bidSet.bidderRequestId === tlResponseObj.callback_id).bids.reduce((a, b) => b);
       var placementCode = bidObj.placementCode;
 
       // @if NODE_ENV='debug'

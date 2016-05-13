@@ -1,3 +1,5 @@
+import { findAuctionByBidderCode } from '../utils';
+
 var CONSTANTS = require('../constants.json');
 var utils = require('../utils.js');
 var bidfactory = require('../bidfactory.js');
@@ -133,10 +135,11 @@ var BrightcomAdapter = function BrightcomAdapter() {
     ) {
 
       // Go through the received bids
-      brightcomResponseObj.seatbid[0].bid.forEach( function(curBid) {
+      brightcomResponseObj.seatbid[0].bid.forEach(function(curBid) {
 
         // Get the bid request data
-        var bidRequest = pbjs._bidsRequested.find(bidSet => bidSet.bidderCode === 'brightcom').bids[0]; // this assumes a single request only
+        const auction = findAuctionByBidderCode({ bidderCode: 'brightcom' });
+        var bidRequest = auction.getBidderRequests().find(bidSet => bidSet.bidderCode === 'brightcom').bids[0]; // this assumes a single request only
 
         // Make sure the bid exists
         if (bidRequest) {

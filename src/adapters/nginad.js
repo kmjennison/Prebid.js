@@ -142,7 +142,7 @@ var NginAdAdapter = function NginAdAdapter() {
       var id = nginadBid.impid;
 
       // try to fetch the bid request we sent NginAd
-      var bidObj = pbjs._bidsRequested.find(bidSet => bidSet.bidderCode === 'nginad').bids
+      var bidObj = auction.getBidderRequests().find(bidSet => bidSet.bidderCode === 'nginad').bids
         .find(bid => bid.bidId === id);
       if (!bidObj) {
         return handleErrorResponse(nginadBid, defaultPlacementForBadBid);
