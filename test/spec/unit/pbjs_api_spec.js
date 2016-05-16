@@ -377,4 +377,17 @@ describe('Unit: Prebid Module', function () {
       utils.logError.restore();
     });
   });
+
+  describe('createBid', () => {
+    it('should return a bid object', () => {
+      const statusCode = 1;
+      const bid = pbjs.createBid(statusCode);
+      assert.isObject(bid, 'bid is an object');
+      assert.equal(bid.getStatusCode(), statusCode, 'bid has correct status');
+
+      const defaultStatusBid = pbjs.createBid();
+      assert.isObject(defaultStatusBid, 'bid is an object');
+      assert.equal(defaultStatusBid.getStatusCode(), 0, 'bid has correct status');
+    });
+  });
 });
