@@ -356,4 +356,25 @@ describe('Unit: Prebid Module', function () {
       assert.equal(id, null);
     });
   });
+
+  describe('registerBidAdapter', () => {
+    it('should register bidAdaptor with adaptermanager', () => {
+      var registerBidAdapterSpy = sinon.spy(adaptermanager, 'registerBidAdapter');
+      pbjs.registerBidAdapter(Function, 'biddercode');
+      assert.ok(registerBidAdapterSpy.called, 'called adaptermanager.registerBidAdapter');
+      adaptermanager.registerBidAdapter.restore();
+    });
+
+    it('should catch thrown errors', () => {
+      var spyLogError = sinon.spy(utils, 'logError');
+      var errorObject = {message: 'bidderAdaptor error'};
+      var bidderAdaptor = sinon.stub().throws(errorObject);
+
+      pbjs.registerBidAdapter(bidderAdaptor, 'biddercode');
+
+      var errorMessage = 'Error registering bidder adapter : ' + errorObject.message;
+      assert.ok(spyLogError.calledWith(errorMessage), 'expected error was caught');
+      utils.logError.restore();
+    });
+  });
 });
