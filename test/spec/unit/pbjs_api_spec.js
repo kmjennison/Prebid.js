@@ -390,4 +390,16 @@ describe('Unit: Prebid Module', function () {
       assert.equal(defaultStatusBid.getStatusCode(), 0, 'bid has correct status');
     });
   });
+
+  describe('addBidResponse', () => {
+    it('should call bidmanager.addBidResponse', () => {
+      const addBidResponseStub = sinon.stub(bidmanager, 'addBidResponse');
+      const adUnitCode = 'testcode';
+      const bid = pbjs.createBid(0);
+
+      pbjs.addBidResponse(adUnitCode, bid);
+      assert.ok(addBidResponseStub.calledWith(adUnitCode, bid), 'called bidmanager.addBidResponse');
+      bidmanager.addBidResponse.restore();
+    });
+  });
 });
