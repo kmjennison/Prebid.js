@@ -381,6 +381,19 @@ describe('Unit: Prebid Module', function () {
     });
   });
 
+  describe('bidsAvailableForAdapter', () => {
+    it('should update requested bid with status set to available', () => {
+      const bidderCode = 'appnexus';
+      pbjs.bidsAvailableForAdapter(bidderCode);
+
+      const requestedBids = pbjs._bidsRequested.find(bid => bid.bidderCode === bidderCode);
+      requestedBids.bids.forEach(bid => {
+        assert.equal(bid.bidderCode, bidderCode, 'bidderCode was set');
+        assert.equal(bid.statusMessage, 'Bid available', 'bid set as available');
+      });
+    });
+  });
+
   describe('createBid', () => {
     it('should return a bid object', () => {
       const statusCode = 1;
