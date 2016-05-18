@@ -5,6 +5,7 @@ var assert = require('chai').assert;
 var prebid = require('src/prebid');
 var utils = require('src/utils');
 var bidmanager = require('src/bidmanager');
+var adloader = require('src/adloader');
 var adaptermanager = require('src/adaptermanager');
 var events = require('src/events');
 
@@ -400,6 +401,19 @@ describe('Unit: Prebid Module', function () {
       pbjs.addBidResponse(adUnitCode, bid);
       assert.ok(addBidResponseStub.calledWith(adUnitCode, bid), 'called bidmanager.addBidResponse');
       bidmanager.addBidResponse.restore();
+    });
+  });
+
+  describe('loadScript', () => {
+    it('should call adloader.loadScript', () => {
+      const loadScriptSpy = sinon.spy(adloader, 'loadScript');
+      const tagSrc = 'testsrc';
+      const callback = Function;
+      const useCache = false;
+
+      pbjs.loadScript(tagSrc, callback, useCache);
+      assert.ok(loadScriptSpy.calledWith(tagSrc, callback, useCache), 'called adloader.loadScript');
+      adloader.loadScript.restore();
     });
   });
 });
