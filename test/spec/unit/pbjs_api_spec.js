@@ -426,4 +426,25 @@ describe('Unit: Prebid Module', function () {
       events.emit.restore();
     });
   });
+
+  describe('aliasBidder', () => {
+    it('should call adaptermanager.aliasBidder', () => {
+      const aliasBidAdapterSpy = sinon.spy(adaptermanager, 'aliasBidAdapter');
+      const bidderCode = 'testcode';
+      const alias = 'testalias';
+
+      pbjs.aliasBidder(bidderCode, alias);
+      assert.ok(aliasBidAdapterSpy.calledWith(bidderCode, alias), 'called adaptermanager.aliasBidAdapterSpy');
+      adaptermanager.aliasBidAdapter.restore();
+    });
+
+    it('should log error when not passed correct arguments', () => {
+      const logErrorSpy = sinon.spy(utils, 'logError');
+      const error = 'bidderCode and alias must be passed as arguments';
+
+      pbjs.aliasBidder();
+      assert.ok(logErrorSpy.calledWith(error), 'expected error was logged');
+      utils.logError.restore();
+    });
+  });
 });
