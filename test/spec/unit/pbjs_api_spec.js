@@ -447,4 +447,24 @@ describe('Unit: Prebid Module', function () {
       utils.logError.restore();
     });
   });
+
+  describe('setPriceGranularity', () => {
+    it('should log error when not passed granularity', () => {
+      const logErrorSpy = sinon.spy(utils, 'logError');
+      const error = 'Prebid Error: no value passed to `setPriceGranularity()`';
+
+      pbjs.setPriceGranularity();
+      assert.ok(logErrorSpy.calledWith(error), 'expected error was logged');
+      utils.logError.restore();
+    });
+
+    it('should call bidmanager.setPriceGranularity with granularity', () => {
+      const setPriceGranularitySpy = sinon.spy(bidmanager, 'setPriceGranularity');
+      const granularity = 'low';
+
+      pbjs.setPriceGranularity(granularity);
+      assert.ok(setPriceGranularitySpy.called, 'called bidmanager.setPriceGranularity');
+      bidmanager.setPriceGranularity.restore();
+    });
+  });
 });
