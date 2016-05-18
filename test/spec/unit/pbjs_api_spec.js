@@ -8,6 +8,7 @@ var bidmanager = require('src/bidmanager');
 var adloader = require('src/adloader');
 var adaptermanager = require('src/adaptermanager');
 var events = require('src/events');
+var CONSTANTS = require('src/constants.json');
 
 var bidResponses = require('test/fixtures/bid-responses.json');
 var targetingMap = require('test/fixtures/targeting-map.json');
@@ -414,6 +415,15 @@ describe('Unit: Prebid Module', function () {
       pbjs.loadScript(tagSrc, callback, useCache);
       assert.ok(loadScriptSpy.calledWith(tagSrc, callback, useCache), 'called adloader.loadScript');
       adloader.loadScript.restore();
+    });
+  });
+
+  describe('sendTimeoutEvent', () => {
+    it('should emit BID_TIMEOUT for timed out bids', () => {
+      const eventsEmitSpy = sinon.spy(events, 'emit');
+      pbjs.sendTimeoutEvent();
+      assert.ok(eventsEmitSpy.calledWith(CONSTANTS.EVENTS.BID_TIMEOUT), 'emitted events BID_TIMEOUT');
+      events.emit.restore();
     });
   });
 });
