@@ -328,6 +328,7 @@ export function getBidResponses() {
       "pbHg": "10.00",
       "pbAg": "10.00",
       "size": "300x250",
+      "dealId": "ABC_123",
       "alwaysUseBid": true,
       "adserverTargeting": {
         "hb_bidder": "appnexus",
@@ -384,6 +385,7 @@ export function getBidResponses() {
       "pbHg": "0.50",
       "pbAg": "0.50",
       "size": "300x250",
+      "dealId": "XYZ_456",
       "adserverTargeting": {
         "hb_bidder": "pagescience",
         "hb_adid": "25bedd4813632d7",
@@ -1069,10 +1071,12 @@ export function getAdServerTargeting() {
       "hb_pb_appnexus": "10.00",
       "hb_adid_appnexus": "233bcbee889d46d",
       "hb_bidder_appnexus": "appnexus",
+      "hb_deal_appnexus": "ABC_123",
       "hb_size_pagescience": "300x250",
       "hb_pb_pagescience": "10.00",
       "hb_adid_pagescience": "25bedd4813632d7",
       "hb_bidder_pagescienc": "pagescience",
+      "hb_deal_pagescience": "XYZ_456",
       "hb_size_brightcom": "300x250",
       "hb_pb_brightcom": "10.00",
       "hb_adid_brightcom": "26e0795ab963896",
