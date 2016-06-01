@@ -1063,6 +1063,7 @@ export function getAdServerTargeting() {
       "hb_pb": "10.00",
       "hb_adid": "233bcbee889d46d",
       "hb_bidder": "appnexus",
+      "hb_deal": "ABC_123",
       "hb_size_triplelift": "0x0",
       "hb_pb_triplelift": "10.00",
       "hb_adid_triplelift": "222bb26f9e8bd",
