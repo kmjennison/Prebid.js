@@ -155,14 +155,6 @@ function getWinningBidTargeting() {
           timeToRespond: 0
         }));
 
-  // move dealIds on the bid into adserverTargeting for passing to ad server
-  winners.forEach(winner => {
-    if (winner.dealId) {
-      winner.adserverTargeting.hb_deal = winner.dealId;
-      winner.adserverTargeting[`hb_deal_${winner.bidderCode}`] = winner.dealId;
-    }
-  });
-
   winners = winners.map(winner => {
     return {
       [winner.adUnitCode]: Object.keys(winner.adserverTargeting, key => key)
@@ -184,19 +176,13 @@ function getBidLandscapeTargeting() {
 
   return pbjs._bidsReceived.map(bid => {
     if (bid.adserverTargeting) {
-      let targetingKeyValues = standardKeys.map(key => {
-        return {
-          [`${key}_${bid.bidderCode}`.substring(0, 20)]: [bid.adserverTargeting[key]]
-        };
-      });
-
-      if (bid.dealId) {
-        targetingKeyValues.push({
-          [`hb_deal_${bid.bidderCode}`]: [bid.dealId]
-        });
-      }
-
-      return {[bid.adUnitCode]: targetingKeyValues};
+      return {
+        [bid.adUnitCode]: standardKeys.filter(key => bid.adserverTargeting[key]).map(key => {
+          return {
+            [`${key}_${bid.bidderCode}`.substring(0, 20)]: [bid.adserverTargeting[key]]
+          };
+        })
+      };
     }
   }).filter(bid => bid); // removes empty elements in array
 }

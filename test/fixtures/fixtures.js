@@ -335,6 +335,7 @@ export function getBidResponses() {
         "hb_adid": "233bcbee889d46d",
         "hb_pb": "10.00",
         "hb_size": "300x250",
+        "hb_deal": "ABC_123",
         "foobar": "300x250"
       }
     },
@@ -391,6 +392,7 @@ export function getBidResponses() {
         "hb_adid": "25bedd4813632d7",
         "hb_pb": "10.00",
         "hb_size": "300x250",
+        "hb_deal": "XYZ_456",
         "foobar": "300x250"
       }
     },

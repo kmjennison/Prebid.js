@@ -157,6 +157,11 @@ function getKeyValueTargetingPairs(bidderCode, custBidObj) {
               return bidResponse.size;
 
             }
+          }, {
+            key: 'hb_deal',
+            val: function(bidResponse) {
+              return bidResponse.dealId;
+            }
           }
         ]
       };
@@ -198,7 +203,8 @@ function setKeys(keyValues, bidderSettings, custBidObj) {
 
     if (utils.isFn(value)) {
       try {
-        keyValues[key] = value(custBidObj);
+        const returnValue = value(custBidObj);
+        if (returnValue) {keyValues[key] = returnValue;}
       } catch (e) {
         utils.logError('bidmanager', 'ERROR', e);
       }
