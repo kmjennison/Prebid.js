@@ -175,9 +175,11 @@ function getBidLandscapeTargeting() {
   const standardKeys = CONSTANTS.TARGETING_KEYS;
 
   return pbjs._bidsReceived.map(bid => {
+    let keys = bid.dealId ? standardKeys.concat('hb_deal') : standardKeys;
+
     if (bid.adserverTargeting) {
       return {
-        [bid.adUnitCode]: standardKeys.filter(key => bid.adserverTargeting[key]).map(key => {
+        [bid.adUnitCode]: keys.filter(key => bid.adserverTargeting[key]).map(key => {
           return {
             [`${key}_${bid.bidderCode}`.substring(0, 20)]: [bid.adserverTargeting[key]]
           };
