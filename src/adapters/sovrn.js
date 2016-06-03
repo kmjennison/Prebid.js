@@ -1,3 +1,5 @@
+import { findBidRequest } from '../utils';
+
 var CONSTANTS = require('../constants.json');
 var utils = require('../utils.js');
 var bidfactory = require('../bidfactory.js');
@@ -104,8 +106,7 @@ var SovrnAdapter = function SovrnAdapter() {
           var bid = {};
 
           // try to fetch the bid request we sent Sovrn
-          var bidObj = auction.getBidderRequests().find(bidSet => bidSet.bidderCode === 'sovrn').bids
-          .find(bid => bid.bidId === id);
+          var bidObj = findBidRequest({ bidId: id });
 
           if (bidObj) {
             placementCode = bidObj.placementCode;

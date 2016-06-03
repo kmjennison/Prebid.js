@@ -1,4 +1,4 @@
-import { findBidderRequestByBidId } from '../utils.js';
+import { findBidRequest } from '../utils.js';
 
 var CONSTANTS = require('../constants.json');
 var utils = require('../utils.js');
@@ -13,7 +13,7 @@ AppNexusAdapter = function AppNexusAdapter() {
 
   baseAdapter.callBids = function (params) {
     params.bids.map(bid => {
-      const callbackId = bid.adId;
+      const callbackId = bid.bidId;
       adloader.loadScript(buildJPTCall(bid, callbackId));
     });
   };
@@ -139,7 +139,7 @@ AppNexusAdapter = function AppNexusAdapter() {
       var responseCPM;
       var id = jptResponseObj.callback_uid;
       var placementCode = '';
-      var bidObj = findBidderRequestByBidId({ adId: id });
+      var bidObj = findBidRequest({ bidId: id });
 
       if (bidObj) {
 
@@ -167,7 +167,7 @@ AppNexusAdapter = function AppNexusAdapter() {
         //store bid response
         //bid status is good (indicating 1)
         var adId = jptResponseObj.result.creative_id;
-        bid = bidfactory.createBid(1, adId);
+        bid = bidfactory.createBid(1, id);
         bid.creative_id = adId;
         bid.bidderCode = bidCode;
         bid.cpm = responseCPM;

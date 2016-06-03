@@ -138,7 +138,7 @@ var BrightcomAdapter = function BrightcomAdapter() {
       brightcomResponseObj.seatbid[0].bid.forEach(function(curBid) {
 
         // Get the bid request data
-        const auction = findAuctionByBidderCode({ bidderCode: 'brightcom' });
+        const auction = auction || pbjs.auctionManager.getSingleAuction();
         var bidRequest = auction.getBidderRequests().find(bidSet => bidSet.bidderCode === 'brightcom').bids[0]; // this assumes a single request only
 
         // Make sure the bid exists

@@ -464,10 +464,6 @@ export function flatten(a, b) {
   return a.concat(b);
 }
 
-export function findBidderRequestByBidId() {
-  return pbjs.auctionManager.findBidderRequestByBidId(...arguments);
-}
-
 export function getKeys(obj) {
   return Object.keys(obj);
 }
@@ -500,6 +496,14 @@ export function getUniqueIdentifierStr() {
   exports.getUniqueIdentifierStr();
 }
 
+export function findBidderRequestByBidId() {
+  return pbjs.auctionManager.findBidderRequestByBidId(...arguments);
+}
+
 export function findAuctionByBidderCode() {
   return pbjs.auctionManager.findAuctionByBidderCode(...arguments);
+}
+
+export function findBidRequest() {
+  return pbjs.auctionManager.findBidRequest(...arguments);
 }

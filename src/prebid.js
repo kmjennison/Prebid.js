@@ -215,10 +215,11 @@ pbjs.getAdserverTargetingForAdUnitCodeStr = function (adunitCode) {
 /**
 * This function returns the query string targeting parameters available at this moment for a given ad unit. Note that some bidder's response may not have been received if you call this function too quickly after the requests are sent.
  * @param adUnitCode {string} adUnitCode to get the bid responses for
+ * @param auction {Object} auction from which to get targeting info
  * @returns {object}  returnObj return bids
  */
 pbjs.getAdserverTargetingForAdUnitCode = function (adUnitCode, auction) {
-  // todo validate params, type check auction
+  auction = auction || pbjs.auctionManager.getSingleAuction();
 
   utils.logInfo('Invoking pbjs.getAdserverTargetingForAdUnitCode', arguments);
 
@@ -246,9 +247,11 @@ pbjs.getAdserverTargetingForAdUnitCode = function (adUnitCode, auction) {
  * @alias module:pbjs.getAdserverTargeting
  */
 
-pbjs.getAdserverTargeting = function () {
+pbjs.getAdserverTargeting = function (auction) {
+  auction = auction || pbjs.auctionManager.getSingleAuction();
+
   utils.logInfo('Invoking pbjs.getAdserverTargeting', arguments);
-  return getAllTargeting()
+  return getAllTargeting(auction)
     .map(targeting => {
       return {
         [Object.keys(targeting)[0]]: targeting[Object.keys(targeting)[0]]
@@ -305,14 +308,16 @@ pbjs.getBidResponsesForAdUnitCode = function (adUnitCode, auction) {
  * Set query string targeting on all GPT ad units.
  * @alias module:pbjs.setTargetingForGPTAsync
  */
-pbjs.setTargetingForGPTAsync = function () {
+pbjs.setTargetingForGPTAsync = function (auction) {
+  auction = auction || pbjs.auctionManager.getSingleAuction();
+
   utils.logInfo('Invoking pbjs.setTargetingForGPTAsync', arguments);
   if (!isGptPubadsDefined()) {
     utils.logError('window.googletag is not defined on the page');
     return;
   }
 
-  setTargeting(getAllTargeting());
+  setTargeting(getAllTargeting(auction));
 };
 
 /**
@@ -332,6 +337,8 @@ pbjs.allBidsAvailable = function () {
  * @alias module:pbjs.renderAd
  */
 pbjs.renderAd = function (doc, id, auction) {
+  auction = auction || pbjs.auctionManager.getSingleAuction();
+
   utils.logInfo('Invoking pbjs.renderAd', arguments);
   utils.logMessage('Calling renderAd with adId :' + id);
   if (doc && id) {
@@ -473,6 +480,7 @@ pbjs.addAdUnits = function (adUnitArr) {
  * @param {String} event the name of the event
  * @param {Function} handler a callback to set on event
  * @param {String} id an identifier in the context of the event
+ * @param {Object} auction the auction that triggered the event
  *
  * This API call allows you to register a callback to handle a Prebid.js event.
  * An optional `id` parameter provides more finely-grained event callback registration.
@@ -484,19 +492,21 @@ pbjs.addAdUnits = function (adUnitArr) {
  *
  * Currently `bidWon` is the only event that accepts an `id` parameter.
  */
-pbjs.onEvent = function (event, handler, id) {
+pbjs.onEvent = function (event, handler, id, auction) {
+  auction = auction || pbjs.auctionManager.getSingleAuction();
+
   utils.logInfo('Invoking pbjs.onEvent', arguments);
   if (!utils.isFn(handler)) {
     utils.logError(`The event handler provided is not a function and was not set on event ${event}.`);
     return;
   }
 
-  if (id && !eventValidators[event].call(null, id)) {
+  if (id && !eventValidators[event].call(null, id, auction)) {
     utils.logError(`The id provided is not valid for event ${event} and no handler was set.`);
     return;
   }
 
-  events.on(event, handler, id);
+  events.on(event, handler, id, auction);
 };
 
 /**

@@ -39,7 +39,6 @@ export const auctionManager = (function() {
     this.setTargeting = (targeting) => _targeting = targeting;
     this.setBidderRequests = (bidderRequests) => _bidderRequests = bidderRequests;
     this.setBidsReceived = (bidsReceived) =>_bidsReceived = _bidsReceived.concat(bidsReceived);
-    this.setBidsReceived = (auctions) =>_auctions = _auctions.concat(auctions);
 
     this.getId = () => _id;
     this.getAdUnits = () => _adUnits;
@@ -69,11 +68,29 @@ export const auctionManager = (function() {
       return _findAuctionsByBidderCode(...arguments);
     },
 
-    findBidderRequestByBidId({ adId }) {
+    findBidderRequestByBidId({ bidId }) {
       return _auctions.map(auction => auction.getBidderRequests()
-    .find(request => request.bids
-      .find(bid => bid.adId === adId)))
-    .reduce((a, b) => a || b);
+      .find(request => request.bids
+        .find(bid => bid.bidId === bidId)))[0] || { start: null };
+    },
+
+    findBidderRequestByBidParamImpId({ impId }) {
+      return _auctions.map(auction => auction.getBidderRequests()
+        .find(request => request.bids
+          .find(bid => bid.params && bid.params.impId === impId)));
+    },
+
+    findAuctionByBidId(bidId) {
+      return _auctions.find(auction => auction.getBidderRequests()
+        .find(request => request.bids
+          .find(bid => bid.bidId === bidId)));
+    },
+
+    findBidRequest({ bidId }) {
+      return _auctions.map(auction => auction.getBidderRequests()
+        .map(request => request.bids
+          .find(bid => bid.bidId === bidId)))[0]
+        .filter(bid => bid !== undefined)[0];
     }
   };
 }());

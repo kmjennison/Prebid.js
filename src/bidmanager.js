@@ -40,8 +40,8 @@ function getBidders(bid) {
   return bid.bidder;
 }
 
-function bidsBackForAdUnit({ adUnitCode, auction }) {
-  const requested = pbjs.adUnits.find(unit => unit.code === adUnitCode).bids.length;
+function bidsBackForAdUnit(adUnitCode, auction) {
+  const requested = auction.getAdUnits().find(unit => unit.code === adUnitCode).bids.length;
   const received = auction.getBidsReceived().filter(bid => bid.adUnitCode === adUnitCode).length;
   return requested === received;
 }
@@ -59,14 +59,19 @@ function bidsBackAll(auction) {
 // exports object
 
 exports.bidsBackForAdUnit = function() {
-  return bidsBackForAdUnit();
+  return bidsBackForAdUnit(...arguments);
 };
 
 /*
  *   This function should be called to by the bidder adapter to register a bid response
  */
-exports.addBidResponse = function (adUnitCode, bid, auction) {
-  if (bid) {
+exports.addBidResponse = function (adUnitCode, bid) {
+  var auction;
+
+  if (bid && bid.bidId) {
+    auction = pbjs.auctionManager.findAuctionByBidId(bid.bidId);
+    auction = auction || pbjs.auctionManager.getSingleAuction();
+
     Object.assign(bid, {
       responseTimestamp: timestamp(),
       requestTimestamp: findBidderRequestByBidId(bid).start,
@@ -80,7 +85,7 @@ exports.addBidResponse = function (adUnitCode, bid, auction) {
     events.emit(CONSTANTS.EVENTS.BID_ADJUSTMENT, bid);
 
     //emit the bidResponse event
-    events.emit(CONSTANTS.EVENTS.BID_RESPONSE, adUnitCode, bid);
+    events.emit(CONSTANTS.EVENTS.BID_RESPONSE, bid);
 
     //append price strings
     const priceStringsObj = getPriceBucketString(bid.cpm, bid.height, bid.width);
@@ -100,18 +105,18 @@ exports.addBidResponse = function (adUnitCode, bid, auction) {
     auction.getBidsReceived().push(bid);
   }
 
-  if (bidsBackForAdUnit(bid.adUnitCode)) {
-    triggerAdUnitCallbacks(bid.adUnitCode);
+  if (bidsBackForAdUnit(bid.adUnitCode, auction)) {
+    triggerAdUnitCallbacks(bid.adUnitCode, auction);
   }
 
-  if (bidsBackAll()) {
-    this.executeCallback();
+  if (bidsBackAll(auction)) {
+    this.executeCallback(auction);
   }
 
   if (bid.timeToRespond > pbjs.bidderTimeout) {
 
-    events.emit(CONSTANTS.EVENTS.BID_TIMEOUT, this.getTimedOutBidders());
-    this.executeCallback();
+    events.emit(CONSTANTS.EVENTS.BID_TIMEOUT, this.getTimedOutBidders(auction));
+    this.executeCallback(auction);
   }
 };
 

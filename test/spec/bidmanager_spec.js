@@ -56,7 +56,7 @@ describe('bidmanager.js', function () {
         return this.height + 'x' + this.width;
       };
       bid.bidderCode = bidderCode;
-      bid.adId = adId;
+      bid.bidId = adId;
 
     });
 
