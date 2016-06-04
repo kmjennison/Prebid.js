@@ -171,7 +171,7 @@ function getKeyValueTargetingPairs(bidderCode, custBidObj) {
     custBidObj.alwaysUseBid = bidder_settings[bidderCode].alwaysUseBid;
   }
 
-  //2) set keys from standard setting. NOTE: this API doesn't seem to be in use by any Adapter
+  //2) set keys from standard setting. NOTE: this API is currently only used by the Amazon A9 adapter
   else if (defaultBidderSettingsMap[bidderCode]) {
     setKeys(keyValues, defaultBidderSettingsMap[bidderCode], custBidObj);
     custBidObj.alwaysUseBid = defaultBidderSettingsMap[bidderCode].alwaysUseBid;

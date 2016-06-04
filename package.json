@@ -13,6 +13,7 @@
   "adapters": [
     "adequant",
     "adform",
+    "amazon",
     "aol",
     "appnexus",
     "indexExchange",
