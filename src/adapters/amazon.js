@@ -1,5 +1,4 @@
 
-var CONSTANTS = require('../constants.json');
 var utils = require('../utils.js');
 var bidfactory = require('../bidfactory.js');
 var bidmanager = require('../bidmanager.js');
@@ -33,6 +32,15 @@ var AmazonAdapter = function AmazonAdapter() {
   }
 
   /**
+   * Converts a an array of [width, height] to a string of "widthxheight".
+   * @param  {array[number]}  Array of two numbers like `[300, 250]` or `[728, 90]`
+   * @return {string}  A string like "300x250"
+   */
+  function _adSizeArrToStr(adSizeArr) {
+    return adSizeArr[0] + 'x' + adSizeArr[1];
+  }
+
+  /**
    * Handler after a bid is returned, which adds the bid response to the bid manager.
    * @param  {string} placementCode The string ID `placementCode` of this bid in the Prebid config
    * @param  {array[number]}  Array of two numbers like `[300, 250]` or `[728, 90]`
@@ -40,12 +48,15 @@ var AmazonAdapter = function AmazonAdapter() {
   function _handleBidResponse(placementCode, adSize) {
     var bidObject;
 
+    var adSizeStr = _adSizeArrToStr(adSize);
+
     // Get the Amazon ad keys (i.e. obfuscated CPM) returned for this size.
     // These will be strings of form "a300x250p2" and "a728x90p1".
-    var tokens = amznads.getTokens(adSize);
+    // The `adSize` parameter should be a string of form `350x250`.
+    var tokens = amznads.getTokens(adSizeStr);
     // var tokens = ['a300x250p2']; // Fake tokens for development.
 
-    _logMsg('Tokens for placement ' + placementCode + ' and size ' + JSON.stringify(adSize) + ': ' + JSON.stringify(tokens));
+    _logMsg('Tokens for placement ' + placementCode + ' and size ' + JSON.stringify(adSizeStr) + ': ' + JSON.stringify(tokens));
 
     if (tokens.length > 0) {
       tokens.forEach(function(key) {
@@ -108,7 +119,7 @@ var AmazonAdapter = function AmazonAdapter() {
         var adSizeArr = [bid.params.width, bid.params.height];
         var callback = _generateBidResponseHandler(placementCode, adSizeArr);
 
-        var adSizeStr = bid.params.width + 'x' + bid.params.height;
+        var adSizeStr = _adSizeArrToStr(adSizeArr);
 
         // params: id, callbackFunction, timeout, size
         amznads.getAdsCallback(bid.params.amazonId, callback, timeout, adSizeStr);
