@@ -32,31 +32,22 @@ var AmazonAdapter = function AmazonAdapter() {
   }
 
   /**
-   * Converts a an array of [width, height] to a string of "widthxheight".
-   * @param  {array[number]}  Array of two numbers like `[300, 250]` or `[728, 90]`
-   * @return {string}  A string like "300x250"
-   */
-  function _adSizeArrToStr(adSizeArr) {
-    return adSizeArr[0] + 'x' + adSizeArr[1];
-  }
-
-  /**
    * Handler after a bid is returned, which adds the bid response to the bid manager.
    * @param  {string} placementCode The string ID `placementCode` of this bid in the Prebid config
-   * @param  {array[number]}  Array of two numbers like `[300, 250]` or `[728, 90]`
+   * @param  {number} width The width of the ad
+   * @param  {number} height The height of the ad
+   * @param  {string} size The ad size string that Amazon uses
    */
-  function _handleBidResponse(placementCode, adSize) {
+  function _handleBidResponse(placementCode, width, height, size) {
     var bidObject;
-
-    var adSizeStr = _adSizeArrToStr(adSize);
 
     // Get the Amazon ad keys (i.e. obfuscated CPM) returned for this size.
     // These will be strings of form "a300x250p2" and "a728x90p1".
-    // The `adSize` parameter should be a string of form `350x250`.
-    var tokens = amznads.getTokens(adSizeStr);
+    // The `size` parameter should be a string of form `350x250`.
+    var tokens = amznads.getTokens(size);
     // var tokens = ['a300x250p2']; // Fake tokens for development.
 
-    _logMsg('Tokens for placement ' + placementCode + ' and size ' + JSON.stringify(adSizeStr) + ': ' + JSON.stringify(tokens));
+    _logMsg('Tokens for placement ' + placementCode + ' and size ' + JSON.stringify(size) + ': ' + JSON.stringify(tokens));
 
     if (tokens.length > 0) {
       tokens.forEach(function(key) {
@@ -64,8 +55,8 @@ var AmazonAdapter = function AmazonAdapter() {
         bidObject.bidderCode = 'amazon';
         bidObject.cpm = 0.10; // Placeholder, since Amazon returns an obfuscated CPM.
         bidObject.ad = key; // Placeholder, since we'll load ad creative via the ad server.
-        bidObject.width = adSize[0];
-        bidObject.height = adSize[1];
+        bidObject.width = width;
+        bidObject.height = height;
 
         // Add Amazon's key.
         bidObject.amazonKey = key;  
@@ -82,19 +73,11 @@ var AmazonAdapter = function AmazonAdapter() {
     }
   }
 
-  /**
-   * Returns a callback function for the specific placement and ad size.
-   * Note that Amazon A9 currently only allows one ad per size per page.
-   * @param  {string} placementCode The string ID `placementCode` of this bid in the Prebid config
-   * @param  {array[number]}  Array of two numbers like `[300, 250]` or `[728, 90]`
-   */
-  function _generateBidResponseHandler(placementCode, adSize) {
-    return (function() {
-      _handleBidResponse(placementCode, adSize);
-    });
-  }
-
   function _requestBids(params) {
+
+    // Note: adding the query parameter value `amzn_debug_mode=1` to the page URL
+    // will make the `amznads` object available on the window scope, which can
+    // be helpful for debugging.
     if (amznads) {
       var timeout = window.PREBID_TIMEOUT || 1000;
       bids = params.bids || [];
@@ -113,16 +96,18 @@ var AmazonAdapter = function AmazonAdapter() {
         if (!bid.params.height) {
           utils.logError('Amazon unable to bid: Missing required `height` parameter in bid.'); 
         }
+        if (!bid.params.size) {
+          utils.logError('Amazon unable to bid: Missing required `size` parameter in bid.'); 
+        }
 
         // Create a separate callback for each ad unit.
-        var placementCode = bid.placementCode;
-        var adSizeArr = [bid.params.width, bid.params.height];
-        var callback = _generateBidResponseHandler(placementCode, adSizeArr);
-
-        var adSizeStr = _adSizeArrToStr(adSizeArr);
+        var callback = function() {
+          _handleBidResponse(bid.placementCode, bid.params.width,
+            bid.params.height, bid.params.size);
+        };
 
         // params: id, callbackFunction, timeout, size
-        amznads.getAdsCallback(bid.params.amazonId, callback, timeout, adSizeStr);
+        amznads.getAdsCallback(bid.params.amazonId, callback, timeout, bid.params.size);
       });
     }
   }
