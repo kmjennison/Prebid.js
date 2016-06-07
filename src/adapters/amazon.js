@@ -14,12 +14,24 @@ var AmazonAdapter = function AmazonAdapter() {
     // Always send Amazon's bid for decisionmaking on the ad server side because
     // the client-size CPM is encoded.
     alwaysUseBid: true,
-    adserverTargeting: [{
-      key: 'amznslots',
-      val: function (bidResponse) {
-        return bidResponse.amazonKey;
+    adserverTargeting: [
+      {
+        // Amazon A9's default key name.
+        key: 'amznslots',
+        val: function (bidResponse) {
+          return bidResponse.amazonKey;
+        }, 
+      }, {
+        // The Prebid ad ID so that we can still use Prebid's `renderAd`
+        // function. Note that if an Amazon ad wins the auction, it must
+        // call `renderAd` using the value of `hb_adid_amazon` rather than
+        // the default `hb_adid`.
+        key: "hb_adid_amazon",
+        val: function (bidResponse) {
+          return bidResponse.adId;
+        }
       }
-    }]
+    ]
   };
   bidmanager.registerDefaultBidderSetting('amazon', _defaultBidderSettings);
 
@@ -51,7 +63,7 @@ var AmazonAdapter = function AmazonAdapter() {
 
     function noBid() {
       // Indicate an ad was not returned.
-      _logMsg('Bid not returned for placement ' + placementCode + '.');
+      _logMsg('No bid returned for placement ' + placementCode + '.');
       bidObject = bidfactory.createBid(2);
       bidObject.bidderCode = 'amazon';
       bidmanager.addBidResponse(placementCode, bidObject);
@@ -59,13 +71,14 @@ var AmazonAdapter = function AmazonAdapter() {
 
     if (tokens.length > 0) {
       tokens.forEach(function(key) {
-        if (!amznads.ads.hasOwnProperty(key)) {
+        if (!amznads.ads) {
           noBid();
+          _logMsg('amznads.ads object is not defined.');
         }
-        bidObject.ad = amznads.ads[key];
         bidObject = bidfactory.createBid(1);
         bidObject.bidderCode = 'amazon';
         bidObject.cpm = 0.10; // Placeholder, since Amazon returns an obfuscated CPM.
+        bidObject.ad = amznads.ads[key];
         bidObject.width = width;
         bidObject.height = height;
 
