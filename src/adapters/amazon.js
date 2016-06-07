@@ -49,12 +49,23 @@ var AmazonAdapter = function AmazonAdapter() {
 
     _logMsg('Tokens for placement ' + placementCode + ' and size ' + JSON.stringify(size) + ': ' + JSON.stringify(tokens));
 
+    function noBid() {
+      // Indicate an ad was not returned.
+      _logMsg('Bid not returned for placement ' + placementCode + '.');
+      bidObject = bidfactory.createBid(2);
+      bidObject.bidderCode = 'amazon';
+      bidmanager.addBidResponse(placementCode, bidObject);
+    }
+
     if (tokens.length > 0) {
       tokens.forEach(function(key) {
+        if (!amznads.ads.hasOwnProperty(key)) {
+          noBid();
+        }
+        bidObject.ad = amznads.ads[key];
         bidObject = bidfactory.createBid(1);
         bidObject.bidderCode = 'amazon';
         bidObject.cpm = 0.10; // Placeholder, since Amazon returns an obfuscated CPM.
-        bidObject.ad = key; // Placeholder, since we'll load ad creative via the ad server.
         bidObject.width = width;
         bidObject.height = height;
 
@@ -65,11 +76,7 @@ var AmazonAdapter = function AmazonAdapter() {
         bidmanager.addBidResponse(placementCode, bidObject);
       });
     } else {
-      // Indicate an ad was not returned.
-      _logMsg('Bid not returned for placement ' + placementCode + '.');
-      bidObject = bidfactory.createBid(2);
-      bidObject.bidderCode = 'amazon';
-      bidmanager.addBidResponse(placementCode, bidObject);
+      noBid();
     }
   }
 
