@@ -11,8 +11,8 @@ var AmazonAdapter = function AmazonAdapter() {
 
   // Override standard bidder settings.
   var _defaultBidderSettings = {
-    // Always send Amazon's bid for decisionmaking on the ad server side because
-    // the client-size CPM is encoded.
+    // Always send Amazon's bid for decisionmaking on the ad server side
+    // because the client-size CPM is encoded.
     alwaysUseBid: true,
     adserverTargeting: [
       {
@@ -37,6 +37,13 @@ var AmazonAdapter = function AmazonAdapter() {
 
   var bids;
 
+  // For debugging only. Set this to true to pretend that A9 returned ads.
+  // This only works if Prebid.js is in debugging mode.
+  // The `amznslots` key value set in ad server targeting will take the form
+  // "a3x2p1", where the "3x2" string is replaced with the "size" value in
+  // the bid parameter settings.
+  var fakeAdsForDebug = false;
+
   // For debugging.
   function _logMsg(msg) {
     // @if NODE_ENV='debug'
@@ -44,98 +51,148 @@ var AmazonAdapter = function AmazonAdapter() {
   }
 
   /**
-   * Handler after a bid is returned, which adds the bid response to the bid manager.
-   * @param  {string} placementCode The string ID `placementCode` of this bid in the Prebid config
-   * @param  {number} width The width of the ad
-   * @param  {number} height The height of the ad
-   * @param  {string} size The ad size string that Amazon uses
+   * Get the A9 ads object.
+   * @return {object} The value of `amznads.ads`
    */
-  function _handleBidResponse(placementCode, width, height, size) {
+  function _getAmznAds() {
+    return amznads.ads;
+  }
+
+  /**
+   * Return whether A9 has ads for this ad size.
+   * @param  {string} adSize The value of the "size" parameter in the bid
+   *   configuration
+   * @return {Boolean} Whether A9 has an ad for this ad size
+   */
+  function _amznHasAds(adSize) {
+    if (fakeAdsForDebug) {
+      return true;
+    }
+    return amznads.hasAds(adSize);
+  }
+
+  /**
+   * Return the array of A9 ad tokens for this ad size
+   * @param  {string} adSize The value of the "size" parameter in the bid
+   *   configuration
+   * @return {array[string]} The list of A9 ad tokens
+   */
+  function _amznGetTokens(adSize) {
+    if (fakeAdsForDebug) {
+      return ['a' + adSize + 'p1'];
+    }
+
+    // Get the Amazon ad tokens for this ad size.
+    // This will be a an array[string] of form ["a3x2p2"].
+    return amznads.getTokens(adSize);
+  }
+
+  /**
+   * Handler after a bid is returned, which adds the bid response to the
+   * bid manager.
+   */
+  function _handleBidResponse() {
     var bidObject;
+    _logMsg('Handling bid response.');
 
-    // Get the Amazon ad keys (i.e. obfuscated CPM) returned for this size.
-    // These will be strings of form "a300x250p2" and "a728x90p1".
-    // The `size` parameter should be a string of form `350x250`.
-    var tokens = amznads.getTokens(size);
-    // var tokens = ['a300x250p2']; // Fake tokens for development.
+    bids.forEach(function(bid) {
+      var bidAdSize = bid.params.size;
 
-    _logMsg('Tokens for placement ' + placementCode + ' and size ' + JSON.stringify(size) + ': ' + JSON.stringify(tokens));
-
-    function noBid() {
-      // Indicate an ad was not returned.
-      _logMsg('No bid returned for placement ' + placementCode + '.');
-      bidObject = bidfactory.createBid(2);
-      bidObject.bidderCode = 'amazon';
-      bidmanager.addBidResponse(placementCode, bidObject);
-    }
-
-    if (tokens.length > 0) {
-      tokens.forEach(function(key) {
-        if (!amznads.ads) {
-          noBid();
-          _logMsg('amznads.ads object is not defined.');
-        }
-        bidObject = bidfactory.createBid(1);
+      // If A9 did not return an ad for this ad size, or the A9 ads object
+      // is unavailable, indicate an ad was not returned.
+      if (!_amznHasAds(bidAdSize) || !_getAmznAds()) {
+        _logMsg('No bid returned for placement ' + bid.placementCode + '.');
+        bidObject = bidfactory.createBid(2);
         bidObject.bidderCode = 'amazon';
-        bidObject.cpm = 0.10; // Placeholder, since Amazon returns an obfuscated CPM.
-        bidObject.ad = amznads.ads[key];
-        bidObject.width = width;
-        bidObject.height = height;
+        bidmanager.addBidResponse(bid.placementCode, bidObject);
+        return;
+      }
 
-        // Add Amazon's key.
-        bidObject.amazonKey = key;  
+      // Use the bid's ads size to fetch the A9 ad key.
+      var key = _amznGetTokens(bidAdSize)[0];
 
-        _logMsg('Bid for placement ' + placementCode + ':' + JSON.stringify(bidObject));
-        bidmanager.addBidResponse(placementCode, bidObject);
-      });
-    } else {
-      noBid();
-    }
+      bidObject = bidfactory.createBid(1);
+      bidObject.bidderCode = 'amazon';
+      bidObject.cpm = 0.10; // Placeholder, since A9 returns an obfuscated CPM
+      bidObject.ad = _getAmznAds()[key];
+      bidObject.width = bid.params.width;
+      bidObject.height = bid.params.height;
+
+      // Add Amazon's key as a custom value. We'll use this to set a
+      // targeting key/value for our ad server.
+      bidObject.amazonKey = key;
+
+      _logMsg('Bid for placement ' + bid.placementCode + ':' +
+        JSON.stringify(bidObject));
+      bidmanager.addBidResponse(bid.placementCode, bidObject);
+
+    });
   }
 
   function _requestBids(params) {
 
-    // Note: adding the query parameter value `amzn_debug_mode=1` to the page URL
-    // will make the `amznads` object available on the window scope, which can
-    // be helpful for debugging.
+    // Note: adding the query parameter value `amzn_debug_mode=1` to the page
+    // URL will make the `amznads` object available on the window scope, which
+    // can be helpful for debugging.
     if (amznads) {
-      var timeout = window.PREBID_TIMEOUT || 1000;
-      bids = params.bids || [];
 
+      // Make sure required bid parameters exist.
+      var bidParamErrors = false;
       bids.forEach(function(bid) {
-
         _logMsg('Bid: ' + JSON.stringify(bid));
 
-        // Check required bid parameters.
+        function paramError(paramName) {
+          bidParamErrors = true;
+          utils.logError('Amazon unable to bid: Missing required `' +
+            paramName + '` parameter in bid.');
+        }
+
         if (!bid.params.amazonId) {
-          utils.logError('Amazon unable to bid: Missing required `amazonId` parameter in bid.');
+          paramError('amazonId');
         }
         if (!bid.params.width) {
-          utils.logError('Amazon unable to bid: Missing required `width` parameter in bid.'); 
+          paramError('width');
         }
         if (!bid.params.height) {
-          utils.logError('Amazon unable to bid: Missing required `height` parameter in bid.'); 
+          paramError('height');
         }
         if (!bid.params.size) {
-          utils.logError('Amazon unable to bid: Missing required `size` parameter in bid.'); 
+          paramError('size');
         }
-
-        // Create a separate callback for each ad unit.
-        var callback = function() {
-          _handleBidResponse(bid.placementCode, bid.params.width,
-            bid.params.height, bid.params.size);
-        };
-
-        // params: id, callbackFunction, timeout, size
-        amznads.getAdsCallback(bid.params.amazonId, callback, timeout, bid.params.size);
       });
+
+      // There was an error in one of the bid parameters, so don't call A9.
+      if (bidParamErrors) {
+        return;
+      }
+
+      // params: id, callbackFunction, timeout, size
+      amznads.getAdsCallback(bids[0].params.amazonId, _handleBidResponse);
+
+    } else {
+      _logMsg('Could not load A9 script.');
     }
   }
 
   function _callBids(params) {
-    adloader.loadScript('//c.amazon-adsystem.com/aax2/amzn_ads.js', function () {
-      _requestBids(params);
-    });
+    bids = params.bids || [];
+
+    if (bids.length < 1) {
+      // No bids, so no need to call A9.
+      return;
+    }
+
+    // To be safe, turn off the `fakeAdsForDebug` functionality if Prebid
+    // debugging is not on.
+    if (!utils.debugTurnedOn()) {
+      fakeAdsForDebug = false;
+    }
+
+    adloader.loadScript('//c.amazon-adsystem.com/aax2/amzn_ads.js',
+      function () {
+        _requestBids(params);
+      }
+    );
   }
 
   return {
