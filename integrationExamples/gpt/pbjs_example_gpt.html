@@ -187,13 +187,13 @@
                             impid: 36
                         }
                     },
-					{
-						bidder: 'sekindo',
-							params: {
-								spaceId: 14071,  	// REQUIRED int. To get one, contact http://www.sekindo.com
-								bidfloor: 0.2		// OPTIONAL float bid floor in $ CPM
-							}
-					}
+                    {
+                        bidder: 'sekindo',
+                            params: {
+                                spaceId: 14071,     // REQUIRED int. To get one, contact http://www.sekindo.com
+                                bidfloor: 0.2       // OPTIONAL float bid floor in $ CPM
+                            }
+                    }
                 ]
             }, {
                 code: 'div-gpt-ad-12345678-1',
@@ -283,85 +283,15 @@
                             pId: 123456 // REQUIRED Placement Id
                         }
                     }
-                },
-                {
-                    bidder: 'aol',
-                    params: {
-                        network: '10559.1',
-                        placement: '4117692',
-                        alias: 'desktop_newtab_300x250',
-                        sizeId: '170',
-                    }
-                },
-                {
-                    bidder: 'districtm',
-                    params: {
-                        placementId: '8528939',
-                        member: '1908',
-                    }
-                },
-                {
-                    bidder: 'amazon',
-                    params: {
-                        amazonId: '3397',
-                        width: 300,
-                        height: 250
-                    }
-                },
-            ]
-        },
-        {
-            code: 'div-gpt-ad-1464385677836-0',
-            sizes: [[728, 90]],
-            bids: [
-                {
-                    bidder: 'sonobi',
-                    params: {                        
-                        dom_id: 'div-gpt-ad-1464385677836-0',
-                        ad_unit: '/43865596/HBTL',
-                    }
-                },
-                {
-                    bidder: 'pulsepoint',
-                    params: {
-                        cf: '728X90',
-                        cp: '560174',
-                        ct: '460981',
-                    }
-                },
-                {
-                    bidder: 'aol',
-                    params: {
-                        network: '10559.1',
-                        placement: '4117691',
-                        alias: 'desktop_newtab_728x90',
-                        sizeId: '225',
-                    }
-
-                },
-                {
-                    bidder: 'districtm',
-                    params: {
-                        placementId: '8528939',
-                        member: '1908',
-                    }
-                },
-                {
-                    bidder: 'amazon',
-                    params: {
-                        amazonId: '3397',
-                        width: 728,
-                        height: 90
-                    }
-                },
-            ]
-        }];
+                ]
+            }
+        ];
 
         //add the adUnits
         $$PREBID_GLOBAL$$.addAdUnits(adUnits);
 
         //register a callback handler
-				$$PREBID_GLOBAL$$.addCallback('adUnitBidsBack', function (adUnitCode) {
+                $$PREBID_GLOBAL$$.addCallback('adUnitBidsBack', function (adUnitCode) {
             console.debug('ad unit bids back for:', adUnitCode);
         });
 
@@ -476,10 +406,10 @@
 
 <h2>Prebid.js Test</h2>
 
-<div id='div-gpt-ad-1464385742501-0'>
+<div id='div-gpt-ad-12345678-0'>
     <script type='text/javascript'>
         googletag.cmd.push(function () {
-            googletag.display('div-gpt-ad-1464385742501-0');
+            googletag.display('div-gpt-ad-12345678-0');
         });
     </script>
 </div>
@@ -488,7 +418,7 @@
 <div id='div-gpt-ad-12345678-1'>
     <script type='text/javascript'>
         googletag.cmd.push(function () {
-            googletag.display('div-gpt-ad-1464385677836-0');
+            googletag.display('div-gpt-ad-12345678-1');
         });
     </script>
 </div>
