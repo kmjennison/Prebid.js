@@ -233,10 +233,6 @@ function getBidLandscapeTargeting() {
   }).filter(bid => bid); // removes empty elements in array
 }
 
-exports.getBidLandscapeTargeting = function() {
-  return getBidLandscapeTargeting(...arguments);
-};
-
 function getAllTargeting() {
   // Get targeting for the winning bid. Add targeting for any bids that have
   // `alwaysUseBid=true`. If sending all bids is enabled, add targeting for losing bids.
@@ -332,10 +328,6 @@ $$PREBID_GLOBAL$$.getAdserverTargeting = function () {
       accumulator[key] = Object.assign({}, accumulator[key], targeting[key]);
       return accumulator;
     }, {});
-};
-
-exports.getAdserverTargeting = function() {
-  return pbjs.getAdserverTargeting(...arguments);
 };
 
 /**
@@ -731,18 +723,6 @@ $$PREBID_GLOBAL$$.setPriceGranularity = function (granularity) {
 
 $$PREBID_GLOBAL$$.enableSendAllBids = function () {
   $$PREBID_GLOBAL$$._sendAllBids = true;
-};
-
-pbjs.disableSendAllBids = function () {
-  pb_sendAllBids = false;
-};
-
-exports.enableSendAllBids = function() {
-  return pbjs.enableSendAllBids(...arguments);
-};
-
-exports.disableSendAllBids = function() {
-  return pbjs.disableSendAllBids(...arguments);
 };
 
 processQue();
