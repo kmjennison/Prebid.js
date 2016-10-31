@@ -348,6 +348,99 @@ describe('bidmanager.js', function () {
 
     });
 
+    it('suppressEmptyKeys=true' , function() {
+      $$PREBID_GLOBAL$$.bidderSettings =
+      {
+        standard: {
+          suppressEmptyKeys: true,
+          adserverTargeting: [
+            {
+              key: "aKeyWithAValue",
+              val: 42
+            },
+            {
+              key: "aKeyWithAnEmptyValue",
+              val: ""
+            }
+          ]
+        }
+      };
+
+      var expected = {
+        "aKeyWithAValue": 42
+      };
+
+      var response = bidmanager.getKeyValueTargetingPairs(bidderCode, bid);
+      assert.deepEqual(response, expected);
+    });
+
+    it('sendStandardTargeting=false and inherit custom', function () {
+      $$PREBID_GLOBAL$$.bidderSettings =
+      {
+        appnexus: {
+          alwaysUseBid: true,
+          sendStandardTargeting: false,
+          adserverTargeting: [
+            {
+              key: "hb_bidder",
+              val: function (bidResponse) {
+                return bidResponse.bidderCode;
+              }
+            }, {
+              key: "hb_adid",
+              val: function (bidResponse) {
+                return bidResponse.adId;
+              }
+            }, {
+              key: "hb_pb",
+              val: function (bidResponse) {
+                return bidResponse.pbHg;
+              }
+            }, {
+              key: "custom",
+              val: 42
+            }
+          ]
+        }
+      };
+
+      var expected = {
+        "custom": 42
+      };
+      var response = bidmanager.getKeyValueTargetingPairs(bidderCode, bid);
+      assert.deepEqual(response, expected);
+
+    });
+
+  });
+
+  describe('adjustBids', () => {
+    it('should adjust bids and pass copy of bid object', () => {
+      const bid = Object.assign({},
+        bidfactory.createBid(2),
+        fixtures.getBidResponses()[5]
+      );
+
+      assert.equal(bid.cpm, .5);
+
+      $$PREBID_GLOBAL$$.bidderSettings =
+      {
+        brealtime: {
+          bidCpmAdjustment: function (bidCpm, bidObj) {
+            assert.deepEqual(bidObj, bid);
+            return bidCpm * 0.5;
+          },
+        },
+        standard: {
+          adserverTargeting: [
+          ]
+        }
+      };
+
+      bidmanager.adjustBids(bid)
+      assert.equal(bid.cpm, .25);
+
+    });
   });
 
   describe('addBidResponse', () => {
