@@ -315,7 +315,7 @@
         $$PREBID_GLOBAL$$.addAdUnits(adUnits);
 
         //register a callback handler
-                $$PREBID_GLOBAL$$.addCallback('adUnitBidsBack', function (adUnitCode) {
+        $$PREBID_GLOBAL$$.addCallback('adUnitBidsBack', function (adUnitCode) { 
             console.debug('ad unit bids back for:', adUnitCode);
         });
 
