@@ -8,6 +8,8 @@ var bidmanager = require('../bidmanager');
 var bidfactory = require('../bidfactory');
 var adloader = require('../adloader');
 
+const TIMEOUT_BUFFER = 100;
+
 /**
  * @class RubiconAdapter
  * Prebid adapter for Rubicon's header bidding client
@@ -30,12 +32,18 @@ var RubiconAdapter = function RubiconAdapter() {
     '970x90': 55,
     '970x250': 57,
     '1000x90': 58,
+    '320x80': 59,
+    '640x480': 65,
     '320x480': 67,
     '1800x1000': 68,
-    '480x320':101,
+    '320x320': 72,
+    '320x160': 73,
+    '480x320': 101,
     '768x1024': 102,
-    '1000x300':113,
-    '320x100':117
+    '1000x300': 113,
+    '320x100': 117,
+    '800x250': 125,
+    '200x600': 126
   };
   var RUBICON_INITIALIZED = (window.rubicontag === undefined) ? 0 : 1;
 
@@ -59,7 +67,7 @@ var RubiconAdapter = function RubiconAdapter() {
    * @return {Bid} a bid, for prebid
    */
   function _errorBid(response, ads) {
-    var bidResponse = bidfactory.createBid(2);
+    var bidResponse = bidfactory.createBid(2, response.bid);
     bidResponse.bidderCode = RUBICON_BIDDER_CODE;
 
     // use the raw ads as the 'error'
@@ -99,59 +107,70 @@ var RubiconAdapter = function RubiconAdapter() {
   }
 
   /**
-   * Create a (successful) bid for a unit,
+   * Create (successful) bids for a unit,
    * based on the given response
    * @param {String} placement placement code/unit path
    * @param {Object} response the response from rubicon
    * @return {Bid} a bid objectj
    */
-  function _makeBid(response, ads) {
+  function _makeBids(response, ads) {
 
     // if there are multiple ads, sort by CPM
     ads = ads.sort(_adCpmSort);
 
-    var bidResponse = bidfactory.createBid(1);
-    var ad = ads[0];
-    var size = ad.dimensions;
+    var bidResponses = [];
 
-    if (!size) {
-      // this really shouldn't happen
-      utils.logError('no dimensions given', RUBICON_BIDDER_CODE, ad);
-      return _errorBid(response, ads);
-    }
+    ads.forEach(function(ad) {
 
-    bidResponse.bidderCode = RUBICON_BIDDER_CODE;
-    bidResponse.cpm = ad.cpm;
+      var bidResponse,
+          size = ad.dimensions;
 
-    // the element id is what the iframe will use to render
-    // itself using the rubicontag.renderCreative API
-    bidResponse.ad = _creative(response.getElementId(), size);
-    bidResponse.width = size[0];
-    bidResponse.height = size[1];
+      if (!size) {
+        // this really shouldn't happen
+        utils.logError('no dimensions given', RUBICON_BIDDER_CODE, ad);
+        bidResponse = _errorBid(response, ads);
+      } else {
+        bidResponse = bidfactory.createBid(1, response.bid);
 
-    // DealId
-    if (ads.deal !== undefined && ads.deal !== "") {
-      bidResponse.dealId = ads.deal;
-    }
+        bidResponse.bidderCode = RUBICON_BIDDER_CODE;
+        bidResponse.cpm = ad.cpm;
 
-    return bidResponse;
+        // the element id is what the iframe will use to render
+        // itself using the rubicontag.renderCreative API
+        bidResponse.ad = _creative(response.getElementId(), size);
+        bidResponse.width = size[0];
+        bidResponse.height = size[1];
+
+        // DealId
+        if (ad.deal) {
+          bidResponse.dealId = ad.deal;
+        }
+      }
+
+      bidResponses.push(bidResponse);
+
+    });
+
+    return bidResponses;
   }
 
   /**
-   * Add a success/error bid based
+   * Add success/error bids based
    * on the response from rubicon
    * @param {Object} response -- AJAX response from fastlane
    */
-  function _addBid(response, ads) {
+  function _addBids(response, ads) {
     // get the bid for the placement code
-    var bid;
+    var bids;
     if (!ads || ads.length === 0) {
-      bid = _errorBid(response, ads);
+      bids = [ _errorBid(response, ads) ];
     } else {
-      bid = _makeBid(response, ads);
+      bids = _makeBids(response, ads);
     }
 
-    bidmanager.addBidResponse(response.getElementId(), bid);
+    bids.forEach(function(bid) {
+      bidmanager.addBidResponse(response.getElementId(), bid);
+    });
   }
 
   /**
@@ -179,7 +198,7 @@ var RubiconAdapter = function RubiconAdapter() {
     var accountId  = options.accountId;
     var scripttUrl = RUBICONTAG_URL + accountId + '.js';
 
-    adloader.loadScript(scripttUrl, done);
+    adloader.loadScript(scripttUrl, done, true);
   }
 
   /**
@@ -211,7 +230,7 @@ var RubiconAdapter = function RubiconAdapter() {
 
   /**
    * Define the slot using the rubicontag.defineSlot API
-   * @param {Object} Bidrequest
+   * @param {Object} bid
    * @returns {RubiconSlot} Instance of RubiconSlot
    */
   function _defineSlot(bid) {
@@ -251,6 +270,8 @@ var RubiconAdapter = function RubiconAdapter() {
 
     slot.addKW(keywords);
 
+    slot.bid = bid;
+
     return slot;
   }
 
@@ -265,42 +286,45 @@ var RubiconAdapter = function RubiconAdapter() {
     utils.logMessage('Rubicon Project bidding complete: ' + ((new Date).getTime() - _bidStart));
 
     utils._each(slots, function (slot) {
-      _addBid(slot, slot.getRawResponses());
+      _addBids(slot, slot.getRawResponses());
     });
   }
 
   /**
    * Request the specified bids from
    * Rubicon
-   * @param {Object} params the bidder-level params (from prebid)
+   * @param {Object} bidderRequest the bidder-level params (from prebid)
    * @param {Array} params.bids the bids requested
    */
-  function _callBids(params) {
+  function _callBids(bidderRequest) {
 
     // start the timer; want to measure from
     // even just loading the SDK
     _bidStart = (new Date).getTime();
 
-    _mapSizes(params.bids);
+    _mapSizes(bidderRequest.bids);
 
-    if (utils.isEmpty(params.bids)) {
+    if (utils.isEmpty(bidderRequest.bids)) {
       return;
     }
 
     // on the first bid, set up the SDK
     if (!RUBICON_INITIALIZED) {
-      _initSDK(params.bids[0].params);
+      _initSDK(bidderRequest.bids[0].params);
     }
 
     _rready(function () {
       var slots = [];
-      var bids  = params.bids;
+      var bids  = bidderRequest.bids;
 
       for (var i=0, ln=bids.length; i < ln; i++) {
         slots.push(_defineSlot(bids[i]));
       }
 
-      var parameters = { slots: slots };
+      var parameters = {
+        slots: slots,
+        timeout: bidderRequest.timeout - (Date.now() - bidderRequest.auctionStart - TIMEOUT_BUFFER)
+      };
       var callback   = function () {
         _bidsReady(slots);
       };
