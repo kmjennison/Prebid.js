@@ -1,0 +1,12 @@
+[
+    "amazon",
+    "aol",
+    "appnexus",
+    "pulsepoint",
+    "sonobi",
+    {
+      "appnexus": {
+        "alias": "brealtime"
+      }
+    }
+]

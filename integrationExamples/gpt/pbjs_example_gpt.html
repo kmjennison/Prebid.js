@@ -119,15 +119,6 @@
                         }
                     },
                     {
-                        bidder: 'amazon',
-                        params: {
-                            amazonId: 'TO ADD',
-                            width: 300,
-                            height: 250,
-                            size: '3x2',
-                        }
-                    },
-                    {
                         bidder: 'yieldbot',
                         params: {
                             psn: 'TO ADD',
@@ -196,13 +187,13 @@
                             impid: 36
                         }
                     },
-					{
-						bidder: 'sekindo',
-							params: {
-								spaceId: 14071,  	// REQUIRED int. To get one, contact http://www.sekindo.com
-								bidfloor: 0.2		// OPTIONAL float bid floor in $ CPM
-							}
-					}
+                    {
+                        bidder: 'sekindo',
+                            params: {
+                                spaceId: 14071,     // REQUIRED int. To get one, contact http://www.sekindo.com
+                                bidfloor: 0.2       // OPTIONAL float bid floor in $ CPM
+                            }
+                    }
                 ]
             }, {
                 code: 'div-gpt-ad-12345678-1',
@@ -212,14 +203,6 @@
                         bidder: 'appnexus',
                         params: {
                             placementId: 'TO ADD'
-                        }
-                    }, {
-                        bidder: 'amazon',
-                        params: {
-                            amazonId: 'TO ADD',
-                            width: 728,
-                            height: 90,
-                            size: '7x9',
                         }
                     }, {
                         bidder: 'openx',
@@ -308,7 +291,7 @@
         $$PREBID_GLOBAL$$.addAdUnits(adUnits);
 
         //register a callback handler
-				$$PREBID_GLOBAL$$.addCallback('adUnitBidsBack', function (adUnitCode) {
+                $$PREBID_GLOBAL$$.addCallback('adUnitBidsBack', function (adUnitCode) {
             console.debug('ad unit bids back for:', adUnitCode);
         });
 
