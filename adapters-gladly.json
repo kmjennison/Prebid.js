@@ -4,6 +4,7 @@
     "appnexus",
     "pulsepoint",
     "sonobi",
+    "komoona",
     {
       "appnexus": {
         "alias": "brealtime"
