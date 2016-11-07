@@ -2,10 +2,8 @@
     "amazon",
     "aol",
     "appnexus",
-    "komoona",
     "pulsepoint",
     "sonobi",
-    "underdogmedia",
     {
       "appnexus": {
         "alias": "brealtime"
