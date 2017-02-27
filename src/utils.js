@@ -69,7 +69,7 @@ exports.generateUUID = function generateUUID(placeholder) {
     ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, generateUUID);
 };
 
-exports.getBidIdParamater = function (key, paramsObj) {
+exports.getBidIdParameter = function (key, paramsObj) {
   if (paramsObj && paramsObj[key]) {
     return paramsObj[key];
   }
@@ -468,6 +468,19 @@ exports.createTrackPixelHtml = function (url) {
   let img = '<div style="position:absolute;left:0px;top:0px;visibility:hidden;">';
   img += '<img src="' + escapedUrl + '"></div>';
   return img;
+};
+
+/**
+ * Creates a snippet of Iframe HTML that retrieves the specified `url`
+ * @param  {string} url plain URL to be requested
+ * @return {string}     HTML snippet that contains the iframe src = set to `url`
+ */
+exports.createTrackPixelIframeHtml = function (url) {
+  if (!url) {
+    return '';
+  }
+
+  return `<iframe frameborder="0" allowtransparency="true" marginheight="0" marginwidth="0" width="0" hspace="0" vspace="0" height="0" style="height:0p;width:0p;display:none;" scrolling="no" src="${encodeURI(url)}"></iframe>`;
 };
 
 /**
