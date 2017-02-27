@@ -2,8 +2,10 @@
     "amazon",
     "aol",
     "appnexus",
+    "districtmDMX",
     "pulsepoint",
     "sonobi",
+    "sovrn",
     {
       "appnexus": {
         "alias": "brealtime"
