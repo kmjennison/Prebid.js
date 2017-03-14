@@ -11,7 +11,9 @@
     "appnexus",
     "appnexusAst",
     "conversant",
+    "districtmDMX",
     "getintent",
+    "gumgum",
     "hiromedia",
     "indexExchange",
     "kruxlink",
@@ -60,5 +62,11 @@
       "rubicon": {
         "alias": "rubiconLite"
       }
+    },
+    {
+      "appnexus": {
+        "alias": "featureforward"
+      }
     }
+
 ]
